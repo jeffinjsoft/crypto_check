@@ -6,7 +6,7 @@ import time
 from multiprocessing import Process
 
 
-max_lookup = 3
+max_lookup = 4
 max_thread = 4
 
 print 'Starting..!!'
