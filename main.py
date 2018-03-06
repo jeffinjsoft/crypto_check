@@ -6,7 +6,7 @@ import time
 from multiprocessing import Process
 
 
-max_lookup = 4
+max_lookup = 3
 max_thread = 4
 
 print 'Starting..!!'
@@ -42,7 +42,9 @@ def do_check(user,sha):
         c_f = 0
         for c in comps:
             if check_hash(c,salt,sha):
-                print 'Password matched :-'+c+' for user -->'+user
+                print '##############################################'
+                print 'Password matched :- %s-->%s'%(user,c)
+                print '##############################################'
                 c_f = 1
                 g_out[user]=c
                 break
@@ -50,8 +52,6 @@ def do_check(user,sha):
             break
 
 
-def do_test(user,sha):
-    return user
 
 def main():
     parser, options, arguments = parse_options()
@@ -61,15 +61,12 @@ def main():
         exit()
     else:
         users = get_users(options.file)
-        print users
-
-    threads = []
+        # print users
 
 
     ps = {}
     for u in users:
         ps[u] = Process(target=do_check, args=(u,users[u],))
-        # threads.append(p)
         ps[u].start()
         # time.sleep(1)
 
