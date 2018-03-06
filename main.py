@@ -3,7 +3,7 @@ from check import check_hash
 from parser import parse_options
 
 import time
-import threading
+from multiprocessing import Process
 
 
 max_lookup = 4
@@ -50,6 +50,8 @@ def do_check(user,sha):
             break
 
 
+def do_test(user,sha):
+    return user
 
 def main():
     parser, options, arguments = parse_options()
@@ -62,25 +64,29 @@ def main():
         print users
 
     threads = []
+
+
+    ps = {}
     for u in users:
-        t = threading.Thread(target=do_check, args=(u,users[u],))
-        threads.append(t)
-        t.start()
-        time.sleep(1)
+        ps[u] = Process(target=do_check, args=(u,users[u],))
+        # threads.append(p)
+        ps[u].start()
+        # time.sleep(1)
 
-    while True:
-        if not t.is_alive():
-            print '##############################################'
-            print '##############################################'
-            print '##############################################'
+    # while True:
+    #     f = 0
+    #     for u in users:
+    #         if ps[u].is_alive():
+    #             f = 1
+    #             break
+    #     if f == 0:
+    #         print '##############################################'
+    #         print g_out
+    #         print '##############################################'
+    #         break
+    #     else:
+    #         time.sleep(2)
 
-
-            print g_out
-
-            print '##############################################'
-            print '##############################################'
-            print '##############################################'
-            break
 
 
 if __name__ == '__main__':
