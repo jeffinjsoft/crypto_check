@@ -7,6 +7,15 @@ from multiprocessing import Process, Manager, cpu_count
 max_thread = cpu_count()
 
 
+
+## PP
+
+import pp
+
+
+ppservers = ("172.17.7.37","172.17.7.128",)
+job_server = pp.Server(ppservers=ppservers)
+
 def check_user(f,u):
     users = []
     h = ''
@@ -19,7 +28,7 @@ def check_user(f,u):
 
     return h
 
-def do_check(ar,salt,sha,return_dict):
+def do_check(ar,salt,sha):
 
     for c in ar:
         if check_hash(c,salt,sha):
@@ -28,46 +37,40 @@ def do_check(ar,salt,sha,return_dict):
             print '##############################################'
             print time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
             # raise RuntimeError('There was an error!')
-            return_dict[c] = c
+
+            return c
 
 
-def start_check(user,sha):
+def start_check(user,sha,p):
     print 'Staring check'
     print time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
     al = sha.split('$')[1].strip()
     s_v = sha.split('$')[2].strip()
     salt = "$"+al+"$"+s_v
 
-    for p in range(1,max_lookup+1):
-    # for p in range(1,4):
 
-        print 'Looking on '+user+' serious :- '+str(p)
 
-        comps = comp(p)
-        size = len(comps)/max_thread
-        # print size
-        s_out = split_arr(comps,size)
-        # print "len -- >"+str(len(s_out))
-        ps_l = []
+    print 'Looking on '+user+' serious :- '+str(p)
 
-        c = 1
-        manager = Manager()
-        return_dict = manager.dict()
-        for p_o in s_out:
-            print 'Starting thread %d'%c
-            ps = Process(target=do_check, args=(p_o,salt,sha,return_dict,))
-            ps.daemon = True
-            ps.start()
-            ps_l.append(ps)
-            # ps[c].join()
-            c = c + 1
-        for p_s in ps_l:
-            p_s.join()
-        if len(return_dict) > 0:
-            print "completed -->%d"%p
+    comps = comp(p)
+    size = len(comps)/12
+    # print size
+    s_out = split_arr(comps,size)
+    print 'Lenth of arr --> %d'%len(s_out)
+    # print "len -- >"+str(len(s_out))
+    ps_l = []
+
+    c = 1
+    jobs = [(input, job_server.submit(do_check, (input,salt,sha,), (check_hash,), ("time","crypt",))) for input in s_out]
+
+    for input, job in jobs:
+        # print "Sum of primes below is", job()
+        if job() != None:
+            job_server.print_stats()
             exit()
-        print "completed -->%d"%p
-        print time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
+
+    job_server.print_stats()
+
 
 
 def main():
@@ -88,7 +91,7 @@ def main():
             usr_hash = check_user(options.file,options.user)
             if len(usr_hash) > 0:
                 print 'user found'
-                start_check(options.user,usr_hash)
+                start_check(options.user,usr_hash,options.char_limit)
             else:
                 print 'user Not found in %s file'%options.file
                 exit()
